@@ -21,7 +21,9 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.myproject.model.BoardVO;
+import com.myproject.model.ReplyVO;
 import com.myproject.service.BoardService;
+import com.myproject.service.ReplyService;
 
 
 @Controller
@@ -34,6 +36,9 @@ public class BoardController {
 	 @Autowired
 	 private BoardService service;
 	 
+	 @Autowired
+	 private ReplyService replyservice;
+	 
 	 @RequestMapping(value = "boardlist", method = RequestMethod.GET)
 	 public void boardListGet(BoardVO board,Model model){
 		
@@ -42,8 +47,10 @@ public class BoardController {
 		service.updateViewCnt(board.getBno());
 		List<BoardVO> list = service.getList(board.getBno());
 		model.addAttribute("list", list);
+		
+		
 	 }
-	 
+	  
 	 @RequestMapping(value="enroll", method = RequestMethod.GET)
 	 public void boardEnrollGet(BoardVO board) {
 		 logger.info("글쓰기 페이지 진입");
@@ -85,19 +92,34 @@ public class BoardController {
 		 logger.info("게시글 상세 페이지 진입");
 
 		 BoardVO data = service.detail(bno); //bno값으로 넘김
-         model.addAttribute("data", data);		 
+         model.addAttribute("data", data);
+         
+         
+         //댓글조회
+         List<ReplyVO> reply = null;
+         reply = replyservice.replyselect(bno);
+         model.addAttribute("reply",reply);
+         
 		 return "board/detail";
 	 }
 	 
 	 //게시글 수정 페이지로 이동
-	 @RequestMapping(value="/update", method =RequestMethod.GET)
-	 public String getupdate(int bno, Model model)throws Exception {
-		 
-		 logger.info("게시글 수정 페이지 진입");
-		 
+	 @RequestMapping(value="/update", method = {RequestMethod.POST, RequestMethod.GET})
+	 public String getupdate(@RequestParam(value="userpassword",required = false) String password, @RequestParam(value="bno")int bno, Model model)throws Exception {
+		  
 		 BoardVO data = service.detail(bno);
+		 BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+		 
+		 if(encoder.matches(password, data.getUserPassword())) {
+		 logger.info("게시글 수정 페이지 진입");
 		 model.addAttribute("data",data);	 
 		 return "board/update";
+		 
+		 }else {
+			 model.addAttribute("errorMessage", "잘못된 비밀번호입니다."); 
+			 String movePage = "redirect:detail?bno="+bno;
+			 return movePage;
+		 }
 	 }
 	 
 	 // 게시글 수정 post
@@ -125,8 +147,6 @@ public class BoardController {
 			    return movePage;
 			  }
 			  
-			
-	 
 	 }
 	 	 
 }
