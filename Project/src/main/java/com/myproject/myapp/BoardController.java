@@ -109,7 +109,8 @@ public class BoardController {
 		  
 		 BoardVO data = service.detail(bno);
 		 BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-		 
+		 System.out.println(data.getUserPassword());
+		 System.out.println("수정 비밀번호 입력 패스워드 " + password);
 		 if(encoder.matches(password, data.getUserPassword())) {
 		 logger.info("게시글 수정 페이지 진입");
 		 model.addAttribute("data",data);	 
@@ -123,11 +124,12 @@ public class BoardController {
 	 }
 	 
 	 // 게시글 수정 post
-	 @RequestMapping(value="/update" ,method =RequestMethod.POST)
-	 public String postupdate(BoardVO boardVO, RedirectAttributes rttr) throws Exception {
-		 
+	 @RequestMapping(value="/postupdate" ,method =RequestMethod.POST)
+	 public String postupdate(BoardVO boardVO) throws Exception {
+		  
 		 service.update(boardVO);
-		 return "redirect:boardlist"; //리스트 페이지로 리다이렉트
+		 
+		 return "redirect:/board/boardlist"; //리스트 페이지로 리다이렉트
 	 }
 	 
 	 //게시물 삭제
@@ -136,11 +138,13 @@ public class BoardController {
 	          
 		      BoardVO board = service.detail(bno);
 		      BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-		      	      
+		      System.out.println("내가 지금 입력한 비밀번호 확인" + password);
+		      
+		      // (암호화) 입력한 비밀번호가 일치하면
 			  if(encoder.matches(password, board.getUserPassword())) {
 				  service.delete(bno);
-				  return "board/boardlist";
-				  
+				  return "redirect:boardlist";
+			  // 비밀번호가 일치하지 않으면	  
 			  }else {
 			    model.addAttribute("errorMessage", "잘못된 비밀번호입니다."); 
 			    String movePage = "redirect:detail?bno="+bno;
