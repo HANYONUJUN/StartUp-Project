@@ -20,7 +20,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.myproject.mapper.PageMakeDTO;
 import com.myproject.model.BoardVO;
+import com.myproject.model.Criteria;
 import com.myproject.model.ReplyVO;
 import com.myproject.service.BoardService;
 import com.myproject.service.ReplyService;
@@ -38,19 +40,20 @@ public class BoardController {
 	 
 	 @Autowired
 	 private ReplyService replyservice;
-	 
-	 @RequestMapping(value = "boardlist", method = RequestMethod.GET)
-	 public void boardListGet(BoardVO board,Model model){
-		
-		logger.info("게시판 목록 출력 페이지 진입");
-		
-		service.updateViewCnt(board.getBno());
-		List<BoardVO> list = service.getList(board.getBno());
-		model.addAttribute("list", list);
-		
-		
-	 }
 	  
+	 //게시글 목록 (페이징 기능 추가)
+	 @RequestMapping(value="list", method= RequestMethod.GET)
+	 public void boardListPage(Model model,Criteria cri) {
+		 
+		 model.addAttribute("getlist",service.getListPaging(cri));
+		 
+		 int total =service.getTotal();
+		 
+		 PageMakeDTO pageMake = new PageMakeDTO(cri, total);
+		 
+		 model.addAttribute("pageMaker", pageMake);
+	 }
+	   
 	 @RequestMapping(value="enroll", method = RequestMethod.GET)
 	 public void boardEnrollGet(BoardVO board) {
 		 logger.info("글쓰기 페이지 진입");
@@ -82,7 +85,7 @@ public class BoardController {
 		 rttr.addFlashAttribute("result", "insert success");
 		 logger.info("BoardVO :" + board);
 		 
-		 return "redirect:/board/boardlist";
+		 return "redirect:/board/list";
 	 } 
 	 
 	 /*게시물 상세 페이지*/
