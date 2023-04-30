@@ -9,6 +9,9 @@ public class Criteria {
 	
 	private int skip;
 	
+	//검색
+	private String keyword;
+	
 	public Criteria() {
 		this(1,10);
 		this.skip = 0;
@@ -49,5 +52,13 @@ public class Criteria {
 	public void setSkip(int skip) {
 		this.skip = skip;
 	}
-	
+
+	public String getKeyword() {
+		return keyword;
+	}
+
+	public void setKeyword(String keyword) {
+		this.keyword = keyword;
+	}
+
 }
