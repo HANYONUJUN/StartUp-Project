@@ -9,6 +9,7 @@ import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
@@ -16,7 +17,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
 @Controller
@@ -30,16 +30,24 @@ public class VisionController {
 		logger.info("이미지 라벨 추출 페이지 진입");
 	}
 	
-	@ResponseBody
+	
 	@RequestMapping(value = "/upload", method = {RequestMethod.POST, RequestMethod.GET})
 	public String upload(@RequestParam("file") MultipartFile file, Model model) throws Exception {
 	    
 		//발급받은 google cloud vision api json 파일을 절대경로로 지정시켜서 읽을 수 있게 만듬.
-		String credentialsLocation = "내 인증파일 정보.json";
+		String credentialsLocation = "C:\\start-up project api key\\woven-century-385408-564234e52dcb.json";
 		GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream(credentialsLocation));
 		ImageAnnotatorSettings settings =
 			    ImageAnnotatorSettings.newBuilder().setCredentialsProvider(FixedCredentialsProvider.create(credentials)).build();
-           
+        
+		// 파일 이름과 파일 내용을 Base64로 인코딩하여 모델에 추가
+	    String fileName = file.getOriginalFilename();
+	    String fileContent = new String(Base64.encodeBase64(file.getBytes()));
+	    model.addAttribute("fileName", fileName);
+	    model.addAttribute("fileContent", fileContent);
+		
+		
+		
 		// Vision API에 연결.
 	    try (ImageAnnotatorClient client = ImageAnnotatorClient.create(settings)) {
 	      
@@ -73,7 +81,7 @@ public class VisionController {
             model.addAttribute("labels", labels);
 	      }
 	    }
-	    return "board/result";
+	    return "/board/result";
 	}
 }
 	 
