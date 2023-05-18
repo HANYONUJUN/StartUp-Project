@@ -7,27 +7,20 @@ import com.google.protobuf.ByteString;
 import java.awt.Color;
 import java.awt.AlphaComposite;
 
-import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
-import java.io.File;
+import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
-
 import javax.imageio.ImageIO;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.util.FileCopyUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -59,8 +52,6 @@ public class VisionController {
 	    String fileContent = new String(Base64.encodeBase64(file.getBytes()));
 	    model.addAttribute("fileName", fileName);
 	    model.addAttribute("fileContent", fileContent);
-		
-		
 		
 		// Vision API에 연결.
 	    try (ImageAnnotatorClient client = ImageAnnotatorClient.create(settings)) {
@@ -98,18 +89,11 @@ public class VisionController {
 	    return "/board/result";
 	}
 	
-	private String uploadPath;
+	
 	private int r;
 	private int g;
 	private int b;
-	private String imagePath;
 	
-	
-	@Value("file:/C:/upload")
-	public void setUploadPath(String uploadPath) {
-	    this.uploadPath = uploadPath;
-	}
-
 	@RequestMapping(value = "fliter", method = RequestMethod.GET)
 	public void fliter(Model model) {
 	    logger.info("이미지 필터 변경 페이지 진입");
@@ -124,35 +108,36 @@ public class VisionController {
 	                          @RequestParam("g") int g,
 	                          @RequestParam("b") int b,
 	                          Model model) throws IOException {
-	    if (!file.isEmpty()) {
-	    	String fileName = UUID.randomUUID().toString() + ".jpg";
-	    	String filePath = "C:/upload/" + fileName;
-	        File outputFile = new File(filePath);
-
-	        // 파일 저장 경로 확인 및 디렉토리 생성
-	        File directory = outputFile.getParentFile();
-	        if (!directory.exists()) {
-	            directory.mkdirs(); // 디렉토리가 존재하지 않으면 생성
-	        }
-
+	 
 	        BufferedImage originalImage = ImageIO.read(file.getInputStream());
 	        BufferedImage filteredImage = applyFilter(originalImage, r, g, b);
+	        
+	        String originalEncodeImg = new String(Base64.encodeBase64(file.getBytes()));
+	        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+	        String filteredEncodeImage=null;
+	        
+	        try {
+	            ImageIO.write(filteredImage, "png", baos);
+	            byte[] imageBytes = baos.toByteArray();
+	            byte[] encodedBytes = Base64.encodeBase64(imageBytes);
+	            filteredEncodeImage = new String(encodedBytes);
 
-	        // 파일 저장
-	        ImageIO.write(filteredImage, "jpg", outputFile);
-
+	        } catch (IOException e) {
+	            e.printStackTrace();
+	        }
+  
 	        // 필터링된 이미지 정보를 모델에 추가
 	        this.r = r;
 	        this.g = g;
 	        this.b = b;
-	        this.imagePath = "C:/upload/" + fileName;
-
+	    
 	        model.addAttribute("r", r);
 	        model.addAttribute("g", g);
 	        model.addAttribute("b", b);
-	        model.addAttribute("imagePath", imagePath);
-	    }
-	    return "board/filtered-image";
+	        model.addAttribute("originalImage", originalEncodeImg);
+	        model.addAttribute("filteredImage", filteredEncodeImage);
+	    
+	    return "board/filteredimage"; // 필터링된 이미지를 표시할 View 페이지로 이동
 	}
 
 	private BufferedImage applyFilter(BufferedImage image, int r, int g, int b) {
