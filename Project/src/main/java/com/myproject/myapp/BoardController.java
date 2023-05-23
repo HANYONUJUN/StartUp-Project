@@ -31,8 +31,7 @@ import com.myproject.service.ReplyService;
 @Controller
 @RequestMapping(value = "/board/*")
 public class BoardController {
-		    
-	
+		   
 	 private static final Logger logger= LoggerFactory.getLogger(BoardController.class);
 	
 	 @Autowired
@@ -45,6 +44,7 @@ public class BoardController {
 	 @RequestMapping(value="list", method= RequestMethod.GET)
 	 public void boardListPage(Model model,Criteria cri) {
 		 
+		
 		 model.addAttribute("getlist",service.getListPaging(cri));
 		 
 		 int total =service.getTotal(cri);
@@ -52,12 +52,15 @@ public class BoardController {
 		 PageMakeDTO pageMake = new PageMakeDTO(cri, total);
 		 
 		 model.addAttribute("pageMaker", pageMake);
+		 
+		 
 	 }
 	   
 	 @RequestMapping(value="enroll", method = RequestMethod.GET)
 	 public void boardEnrollGet(BoardVO board) {
 		 logger.info("글쓰기 페이지 진입");
 	 }
+	 
 	 
 	 /*게시판 등록 */
 	 @RequestMapping(value= "/enroll", method=RequestMethod.POST)
@@ -82,6 +85,8 @@ public class BoardController {
 		 
 		 board.setFileName(fileName);
 		 service.insert(board);
+		
+		 
 		 rttr.addFlashAttribute("result", "insert success");
 		 logger.info("BoardVO :" + board);
 		 
@@ -90,20 +95,23 @@ public class BoardController {
 	 
 	 /*게시물 상세 페이지*/
 	 @RequestMapping(value="/detail" ,method = RequestMethod.GET)
-	 public String getdetail(Model model, int bno) throws Exception{
+	 public String getdetail(Model model, @RequestParam("bno")int bno) throws Exception{
 		 
 		 logger.info("게시글 상세 페이지 진입");
-
+		 
 		 BoardVO data = service.detail(bno); //bno값으로 넘김
+		 service.updateViewCnt(bno);  
          model.addAttribute("data", data);
          
          
          //댓글조회
+         
          List<ReplyVO> reply = null;
          reply = replyservice.replyselect(bno);
          model.addAttribute("reply",reply);
-         
+	
 		 return "board/detail";
+		 
 	 }
 	 
 	 //게시글 수정 페이지로 이동
@@ -132,7 +140,7 @@ public class BoardController {
 		  
 		 service.update(boardVO);
 		 
-		 return "redirect:/board/boardlist"; //리스트 페이지로 리다이렉트
+		 return "redirect:/board/list"; //리스트 페이지로 리다이렉트
 	 }
 	 
 	 //게시물 삭제
@@ -146,7 +154,8 @@ public class BoardController {
 		      // (암호화) 입력한 비밀번호가 일치하면
 			  if(encoder.matches(password, board.getUserPassword())) {
 				  service.delete(bno);
-				  return "redirect:boardlist";
+				  return "redirect:list";
+				  
 			  // 비밀번호가 일치하지 않으면	  
 			  }else {
 			    model.addAttribute("errorMessage", "잘못된 비밀번호입니다."); 
@@ -154,6 +163,32 @@ public class BoardController {
 			    return movePage;
 			  }
 			  
-	 }
-	 	 
+	   }
+	 
+	 @RequestMapping(value="/replyDelete")
+	    public String deleteReply(@RequestParam("rno") int rno, 
+	    		@RequestParam("bno") int bno, 
+	    		@RequestParam("replypassword") String replypassword,
+	    		Model model) {
+	        // 여기에 댓글 삭제 로직을 구현합니다.
+		    List<ReplyVO> reply = replyservice.replyselect(bno);
+		    String repass=" ";
+		    
+		    for(int i=0;  i < reply.size(); i++) {
+		    	 if(rno == reply.get(i).getRno()) {
+		    		repass=reply.get(i).getRepassword();
+		    		 
+		    	 }  	 
+		    }
+		    
+		    if(replypassword.equals(repass)) {
+		    	replyservice.redelete(rno);
+		    	return "redirect:/board/detail?bno=" + bno;
+		    }else {
+		    	System.out.println("삭제실패");
+		    }
+		 
+	        // 삭제 후 원하는 페이지로 이동하도록 redirect 경로를 반환합니다.
+	        return "redirect:/board/detail?bno=" + bno;
+	    }
 }

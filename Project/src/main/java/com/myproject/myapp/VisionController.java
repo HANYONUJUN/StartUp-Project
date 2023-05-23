@@ -42,7 +42,7 @@ public class VisionController {
 	public String upload(@RequestParam("file") MultipartFile file, Model model) throws Exception {
 	    
 		//발급받은 google cloud vision api json 파일을 절대경로로 지정시켜서 읽을 수 있게 만듬.
-		String credentialsLocation = "내 인증정보.json";
+		String credentialsLocation = "C:\\start-up project api key\\woven-century-385408-564234e52dcb.json";
 		GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream(credentialsLocation));
 		ImageAnnotatorSettings settings =
 			    ImageAnnotatorSettings.newBuilder().setCredentialsProvider(FixedCredentialsProvider.create(credentials)).build();
@@ -90,32 +90,25 @@ public class VisionController {
 	}
 	
 	
-	private int r;
-	private int g;
-	private int b;
+	 private String hexColor = "#000000"; // 초기 Hex Color 값 (검은색)
 	
 	@RequestMapping(value = "fliter", method = RequestMethod.GET)
 	public void fliter(Model model) {
 	    logger.info("이미지 필터 변경 페이지 진입");
-	    model.addAttribute("r", r);
-	    model.addAttribute("g", g);
-	    model.addAttribute("b", b);
+	    model.addAttribute("hexColor", hexColor);
 	}
 
-	@RequestMapping(value = "/uploadfliter", method = RequestMethod.POST)
-	public String uploadImage(@RequestParam("image") MultipartFile file,
-	                          @RequestParam("r") int r,
-	                          @RequestParam("g") int g,
-	                          @RequestParam("b") int b,
-	                          Model model) throws IOException {
-	 
+	   @RequestMapping(value = "/uploadfilter", method = RequestMethod.POST)
+	    public String uploadImage(@RequestParam("image") MultipartFile file,
+	                              @RequestParam("hexColor") String hexColor,
+	                              Model model) throws IOException {
 	        BufferedImage originalImage = ImageIO.read(file.getInputStream());
-	        BufferedImage filteredImage = applyFilter(originalImage, r, g, b);
-	        
+	        BufferedImage filteredImage = applyFilter(originalImage, hexColor);
+
 	        String originalEncodeImg = new String(Base64.encodeBase64(file.getBytes()));
 	        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-	        String filteredEncodeImage=null;
-	        
+	        String filteredEncodeImage = null;
+
 	        try {
 	            ImageIO.write(filteredImage, "png", baos);
 	            byte[] imageBytes = baos.toByteArray();
@@ -125,34 +118,32 @@ public class VisionController {
 	        } catch (IOException e) {
 	            e.printStackTrace();
 	        }
-  
-	        // 필터링된 이미지 정보를 모델에 추가
-	        this.r = r;
-	        this.g = g;
-	        this.b = b;
-	    
-	        model.addAttribute("r", r);
-	        model.addAttribute("g", g);
-	        model.addAttribute("b", b);
+
+	        this.hexColor = hexColor;
+
+	        model.addAttribute("hexColor", hexColor);
 	        model.addAttribute("originalImage", originalEncodeImg);
 	        model.addAttribute("filteredImage", filteredEncodeImage);
-	    
-	    return "board/filteredimage"; // 필터링된 이미지를 표시할 View 페이지로 이동
-	}
 
-	private BufferedImage applyFilter(BufferedImage image, int r, int g, int b) {
-	    BufferedImage filteredImage = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_RGB);
-	    Graphics2D graphics = filteredImage.createGraphics();
-	    graphics.drawImage(image, 0, 0, null);
+	        return "board/filteredimage"; // 필터링된 이미지를 표시할 View 페이지로 이동
+	    }
 
-	    Color filterColor = new Color(r, g, b);
-	    graphics.setColor(filterColor);
-	    graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_ATOP, 0.5f));
-	    graphics.fillRect(0, 0, image.getWidth(), image.getHeight());
-	    graphics.dispose();
+	    private BufferedImage applyFilter(BufferedImage image, String hexColor) {
+	        int rgb = Color.decode(hexColor).getRGB();
+	        int alpha = 128; // 투명도 (0-255 범위)
+	        
+	        BufferedImage filteredImage = new BufferedImage(image.getWidth(), image.getHeight(),
+	                BufferedImage.TYPE_INT_ARGB);
+	        Graphics2D graphics = filteredImage.createGraphics();
+	        graphics.drawImage(image, 0, 0, null);
 
-	    return filteredImage;
-	}
+	        graphics.setColor(new Color(rgb, true));
+	        graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_ATOP, alpha / 255f));
+	        graphics.fillRect(0, 0, image.getWidth(), image.getHeight());
+	        graphics.dispose();
+
+	        return filteredImage;
+	    }
 		
 }
 	 
