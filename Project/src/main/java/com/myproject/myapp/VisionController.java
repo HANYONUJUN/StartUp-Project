@@ -15,10 +15,16 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import javax.imageio.ImageIO;
+import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -42,7 +48,7 @@ public class VisionController {
 	public String upload(@RequestParam("file") MultipartFile file, Model model) throws Exception {
 	    
 		//발급받은 google cloud vision api json 파일을 절대경로로 지정시켜서 읽을 수 있게 만듬.
-		String credentialsLocation = "C:\\start-up project api key\\woven-century-385408-564234e52dcb.json";
+		String credentialsLocation = "내 인증정보";
 		GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream(credentialsLocation));
 		ImageAnnotatorSettings settings =
 			    ImageAnnotatorSettings.newBuilder().setCredentialsProvider(FixedCredentialsProvider.create(credentials)).build();
@@ -144,6 +150,27 @@ public class VisionController {
 
 	        return filteredImage;
 	    }
+	    
+	    @RequestMapping(value = "/download" ,method = RequestMethod.GET)
+	    public ResponseEntity<byte[]> downloadImage(@RequestParam("base64Image") String filteredImage, HttpServletRequest request) throws IOException {
+	    	  // base64 문자열을 바이트 배열로 디코딩
+	        byte[] imageBytes = Base64.decodeBase64(filteredImage);
+
+	        // 다운로드할 파일의 MIME 타입 설정
+	        ServletContext servletContext = request.getSession().getServletContext();
+	        String contentType = servletContext.getMimeType("image.png");
+	        if (contentType == null) {
+	            contentType = "application/octet-stream";
+	        }
+
+	        // 파일 다운로드를 위한 Response 설정
+	        HttpHeaders headers = new HttpHeaders();
+	        headers.setContentType(MediaType.parseMediaType(contentType));
+	        headers.setContentDispositionFormData("attachment", "image.png");
+
+	        return new ResponseEntity<>(imageBytes, headers, HttpStatus.OK);
+	    }
+
 		
 }
 	 
