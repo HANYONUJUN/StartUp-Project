@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
-
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -98,14 +97,15 @@ public class BoardController {
 	 public String getdetail(Model model, @RequestParam("bno")int bno) throws Exception{
 		 
 		 logger.info("게시글 상세 페이지 진입");
-		 
+		 /*
 		 BoardVO data = service.detail(bno); //bno값으로 넘김
-		 service.updateViewCnt(bno);  
-         model.addAttribute("data", data);
+		 */
+		  
+         model.addAttribute("data", service.detail(bno));
          
+         service.updateViewCnt(bno); 
          
          //댓글조회
-         
          List<ReplyVO> reply = null;
          reply = replyservice.replyselect(bno);
          model.addAttribute("reply",reply);
@@ -191,4 +191,34 @@ public class BoardController {
 	        // 삭제 후 원하는 페이지로 이동하도록 redirect 경로를 반환합니다.
 	        return "redirect:/board/detail?bno=" + bno;
 	    }
+	 
+	 @RequestMapping(value="/replyModify")
+	 public String modifyReply(@RequestParam("rno") int rno, 
+	                           @RequestParam("bno") int bno, 
+	                           @RequestParam("replypassword") String replypassword,
+	                           @RequestParam("recontent") String replycontent,
+	                           Model model) {
+
+	     // 댓글 수정 로직을 구현.
+	     List<ReplyVO> reply = replyservice.replyselect(bno);
+	     String repass = " ";
+
+	     for (int i = 0; i < reply.size(); i++) {
+	         if (rno == reply.get(i).getRno()) {
+	             repass = reply.get(i).getRepassword();
+	         }
+	     }
+
+	     if (replypassword.equals(repass)) {
+	         replyservice.reupdate(rno, replycontent);
+	         return "redirect:/board/detail?bno=" + bno;
+	         
+	     } else {
+	         System.out.println("수정 실패");
+	     }
+
+	     // 삭제 후 원하는 페이지로 이동하도록 redirect 경로를 반환합니다.
+	     return "redirect:/board/detail?bno=" + bno;
+	 }
+	 
 }
