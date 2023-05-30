@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
@@ -17,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.myproject.mapper.PageMakeDTO;
@@ -97,20 +100,16 @@ public class BoardController {
 	 public String getdetail(Model model, @RequestParam("bno")int bno) throws Exception{
 		 
 		 logger.info("게시글 상세 페이지 진입");
-		 /*
-		 BoardVO data = service.detail(bno); //bno값으로 넘김
-		 */
-		  
-         model.addAttribute("data", service.detail(bno));
-         
-         service.updateViewCnt(bno); 
-         
-         //댓글조회
+		 
+		 //댓글조회
          List<ReplyVO> reply = null;
          reply = replyservice.replyselect(bno);
          model.addAttribute("reply",reply);
-	
-		 return "board/detail";
+		 
+         model.addAttribute("data", service.detail(bno));
+         service.updateViewCnt(bno);
+        
+         return "/board/detail";
 		 
 	 }
 	 
@@ -136,40 +135,48 @@ public class BoardController {
 	 
 	 // 게시글 수정 post
 	 @RequestMapping(value="/postupdate" ,method =RequestMethod.POST)
-	 public String postupdate(BoardVO boardVO) throws Exception {
+	 public String postupdate(BoardVO boardVO,MultipartFile file) throws Exception {
 		  
+		 if (!file.isEmpty()) {
+		        // 기존 파일 삭제 로직
+		        String oldFileName = boardVO.getFileName(); // 기존 파일명 가져오기
+		        if (oldFileName != null && !oldFileName.isEmpty()) {
+		            String filePath = "파일이 저장된 경로" + oldFileName; // 파일이 저장된 경로
+		            File oldFile = new File(filePath);
+		            if (oldFile.exists()) {
+		                oldFile.delete();
+		            }
+		        }
+		    }
 		 service.update(boardVO);
-		 
 		 return "redirect:/board/list"; //리스트 페이지로 리다이렉트
 	 }
-	 
+	
 	 //게시물 삭제
 	 @RequestMapping(value="/postdelete",method = {RequestMethod.POST, RequestMethod.GET})
-	 public String postdelete(@RequestParam(value="userpassword",required = false) String password, @RequestParam(value="bno")int bno ,Model model) throws Exception {
+	 public String postdelete(@RequestParam(value="userpassword",required = false) String password, @RequestParam(value="bno")int bno ,Model model, RedirectAttributes ra) throws Exception {
 	          
-		      BoardVO board = service.detail(bno);
-		      BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-		      System.out.println("내가 지금 입력한 비밀번호 확인" + password);
-		      
-		      // (암호화) 입력한 비밀번호가 일치하면
-			  if(encoder.matches(password, board.getUserPassword())) {
-				  service.delete(bno);
-				  return "redirect:list";
-				  
-			  // 비밀번호가 일치하지 않으면	  
-			  }else {
-			    model.addAttribute("errorMessage", "잘못된 비밀번호입니다."); 
-			    String movePage = "redirect:detail?bno="+bno;
-			    return movePage;
-			  }
-			  
+		 BoardVO board = service.detail(bno);
+		    BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+		    System.out.println("내가 지금 입력한 비밀번호 확인" + password);
+
+		    if (encoder.matches(password, board.getUserPassword())) {
+		        service.delete(bno);
+		        ra.addAttribute("deresult", "deleteOK"); // 삭제 성공 여부를 RedirectAttributes에 추가
+		        return "redirect:list";
+		    } else {
+		    	 ra.addAttribute("deresult", "deleteFail"); // 삭제 실패 여부를 RedirectAttributes에 추가
+		        return "redirect:detail?bno=" + bno;
+		    }
 	   }
 	 
 	 @RequestMapping(value="/replyDelete")
 	    public String deleteReply(@RequestParam("rno") int rno, 
 	    		@RequestParam("bno") int bno, 
 	    		@RequestParam("replypassword") String replypassword,
-	    		Model model) {
+	    		Model model,
+	    		RedirectAttributes ra
+	    		) {
 	        // 여기에 댓글 삭제 로직을 구현합니다.
 		    List<ReplyVO> reply = replyservice.replyselect(bno);
 		    String repass=" ";
@@ -183,8 +190,10 @@ public class BoardController {
 		    
 		    if(replypassword.equals(repass)) {
 		    	replyservice.redelete(rno);
+		    	ra.addAttribute("reresult", "redeleteOK"); // 삭제 성공 여부를 RedirectAttributes에 추가
 		    	return "redirect:/board/detail?bno=" + bno;
 		    }else {
+		    	ra.addAttribute("reresult", "redeleteFail"); // 삭제 성공 여부를 RedirectAttributes에 추가
 		    	System.out.println("삭제실패");
 		    }
 		 
@@ -197,7 +206,8 @@ public class BoardController {
 	                           @RequestParam("bno") int bno, 
 	                           @RequestParam("replypassword") String replypassword,
 	                           @RequestParam("recontent") String replycontent,
-	                           Model model) {
+	                           Model model,
+	                           RedirectAttributes ra) {
 
 	     // 댓글 수정 로직을 구현.
 	     List<ReplyVO> reply = replyservice.replyselect(bno);
@@ -211,9 +221,11 @@ public class BoardController {
 
 	     if (replypassword.equals(repass)) {
 	         replyservice.reupdate(rno, replycontent);
+	         ra.addAttribute("reupresult", "reupmodifyOK"); // 삭제 성공 여부를 RedirectAttributes에 추가
 	         return "redirect:/board/detail?bno=" + bno;
 	         
 	     } else {
+	    	 ra.addAttribute("reupresult", "reupmodifyFail"); // 삭제 성공 여부를 RedirectAttributes에 추가
 	         System.out.println("수정 실패");
 	     }
 
