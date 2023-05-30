@@ -193,7 +193,7 @@ public class BoardController {
 		    	ra.addAttribute("reresult", "redeleteOK"); // 삭제 성공 여부를 RedirectAttributes에 추가
 		    	return "redirect:/board/detail?bno=" + bno;
 		    }else {
-		    	ra.addAttribute("reresult", "redeleteFail"); // 삭제 성공 여부를 RedirectAttributes에 추가
+		    	ra.addAttribute("reresult", "redeleteFail"); // 삭제 실패 여부를 RedirectAttributes에 추가
 		    	System.out.println("삭제실패");
 		    }
 		 
@@ -225,7 +225,7 @@ public class BoardController {
 	         return "redirect:/board/detail?bno=" + bno;
 	         
 	     } else {
-	    	 ra.addAttribute("reupresult", "reupmodifyFail"); // 삭제 성공 여부를 RedirectAttributes에 추가
+	    	 ra.addAttribute("reupresult", "reupmodifyFail"); // 삭제 실패 여부를 RedirectAttributes에 추가
 	         System.out.println("수정 실패");
 	     }
 
