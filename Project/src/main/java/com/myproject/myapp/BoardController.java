@@ -4,8 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+
 
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
@@ -19,7 +18,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.myproject.mapper.PageMakeDTO;
@@ -46,7 +44,6 @@ public class BoardController {
 	 @RequestMapping(value="list", method= RequestMethod.GET)
 	 public void boardListPage(Model model,Criteria cri) {
 		 
-		
 		 model.addAttribute("getlist",service.getListPaging(cri));
 		 
 		 int total =service.getTotal(cri);
@@ -115,7 +112,7 @@ public class BoardController {
 	 
 	 //게시글 수정 페이지로 이동
 	 @RequestMapping(value="/update", method = {RequestMethod.POST, RequestMethod.GET})
-	 public String getupdate(@RequestParam(value="userpassword",required = false) String password, @RequestParam(value="bno")int bno, Model model)throws Exception {
+	 public String getupdate(@RequestParam(value="userpassword",required = false) String password, @RequestParam(value="bno")int bno, Model model,RedirectAttributes ra)throws Exception {
 		  
 		 BoardVO data = service.detail(bno);
 		 BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
@@ -128,6 +125,7 @@ public class BoardController {
 		 
 		 }else {
 			 model.addAttribute("errorMessage", "잘못된 비밀번호입니다."); 
+			 ra.addAttribute("update", "updateFail");
 			 String movePage = "redirect:detail?bno="+bno;
 			 return movePage;
 		 }
@@ -135,20 +133,9 @@ public class BoardController {
 	 
 	 // 게시글 수정 post
 	 @RequestMapping(value="/postupdate" ,method =RequestMethod.POST)
-	 public String postupdate(BoardVO boardVO,MultipartFile file) throws Exception {
-		  
-		 if (!file.isEmpty()) {
-		        // 기존 파일 삭제 로직
-		        String oldFileName = boardVO.getFileName(); // 기존 파일명 가져오기
-		        if (oldFileName != null && !oldFileName.isEmpty()) {
-		            String filePath = "파일이 저장된 경로" + oldFileName; // 파일이 저장된 경로
-		            File oldFile = new File(filePath);
-		            if (oldFile.exists()) {
-		                oldFile.delete();
-		            }
-		        }
-		    }
+	 public String postupdate(BoardVO boardVO,RedirectAttributes ra) throws Exception {
 		 service.update(boardVO);
+		 ra.addAttribute("update", "updateOK"); // 수정 성공 여부를 RedirectAttributes에 추가
 		 return "redirect:/board/list"; //리스트 페이지로 리다이렉트
 	 }
 	
