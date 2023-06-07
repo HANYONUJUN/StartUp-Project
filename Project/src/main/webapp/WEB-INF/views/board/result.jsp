@@ -43,6 +43,14 @@
 		color:white;
 		text-align:center;
 	} 
+	
+	#labelChart {
+		margin-left:-200px;
+	    margin-top:30px;
+        max-width: 600px;
+     
+    }
+  
 
 </style>
 
@@ -99,16 +107,45 @@
         </div>
   	   </div>
       </nav>
-                 
+       
+
 	  <div class="uploadimg" style="width:1170px; height:1100px;">
 	  	<div class="imgContent">	  
       		<img src="data:image/png;base64,${fileContent}" alt="Uploaded File" />
       		<p>File Name: ${fileName}</p>
 	  	</div>
-      	<canvas id="labelChart" class="card" style="margin-left:30px; border:2px solid black;"></canvas>
-      </div>   
+	  	
+	  	<ul class="nav nav-tabs" id="myTab" role="tablist" style="margin-left:100px; margin-top:-20px;">
+  			<li class="nav-item" role="presentation">
+    			<button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home-tab-pane" type="button" role="tab" aria-controls="home-tab-pane" aria-selected="true">label</button>
+  			</li>
+ 
+  			<li class="nav-item" role="presentation">
+    			<button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile-tab-pane" type="button" role="tab" aria-controls="profile-tab-pane" aria-selected="false">Object</button>
+  			</li>
+		</ul>
+	
+		<div class="tab-content" id="myTabContent">
+  			<div class="tab-pane fade show active" id="home-tab-pane" role="tabpanel" aria-labelledby="home-tab" tabindex="0">
+     			<canvas id="labelChart" class="card" style="height:480px; width:400px;"></canvas>
+  		    </div>
+  		
+  		<div class="tab-pane fade" id="profile-tab-pane" role="tabpanel" aria-labelledby="profile-tab" tabindex="0"> 
+  		 <div class="object" style="margin-top:30px; margin-left:-150px;">
+		  <ul>
+           <c:forEach items="${objects}" var="object">
+             <li>
+                <strong>Name:</strong> ${object.name}<br>
+                <strong>Score:</strong> ${object.score}<br>   
+            </li>
+           </c:forEach>
+          </ul>
+         </div>
+  		</div>
+	  </div>    
+     </div>   
       
-    <script>
+<script>
     // 라벨 결과 데이터
     var labels = [
         <c:forEach items="${labels}" var="label" varStatus="status">
@@ -140,11 +177,27 @@
                 x: {
                     beginAtZero: true,
                     max: 1
+                },
+                y: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        font: {
+                            size: 12
+                        }
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
                 }
             }
         }
     });
 </script>
+
     
     <div class="footer_wrap">
       <footer class="py-1 bg-dark mt-auto" style="height:60px;">
