@@ -123,7 +123,7 @@
 			<br>
 			
 			<div class="inupload">
-			  <input type="submit" onclick="showLoading()" value="Upload">
+			  <input type="submit" onclick="showLoading()" value="Upload" class="btn btn-outline-primary">
 		    </div>
 		    
 		    <div id="loading-overlay">
