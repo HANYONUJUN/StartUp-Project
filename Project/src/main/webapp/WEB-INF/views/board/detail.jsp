@@ -32,6 +32,9 @@
     	margin-top:75px; 
     	border:3px solid black;
   	}
+  	
+  	
+  	
   	.card-body{
   	  margin-bottom:-10px; 
   	  text-align:center;
@@ -73,8 +76,8 @@
 	<body>
 
     <nav class="navbar navbar-dark bg-dark fixed-top">
-      <div class="container-fluid">
-      <a class="navbar-brand" href="#">Offcanvas dark navbar</a>
+     <div class="container-fluid">
+     
       <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasDarkNavbar" aria-controls="offcanvasDarkNavbar" aria-label="Toggle navigation">
        <span class="navbar-toggler-icon"></span>
       </button>
@@ -153,7 +156,19 @@
     	document.getElementById('ModifyRno').value = rno;
     	document.getElementById('recontent').value = recontent;
   		}
-		</script>
+  		
+  		$(document).ready(function() {
+  			 let result = '<%= request.getParameter("inreply") %>';
+   
+        	 checkAlert(result);
+
+   		 function checkAlert(result) {
+       	 if (result === 'replyOK') {
+       		alert("댓글 등록이 완료되었습니다.");
+     		}  
+  	     }
+ 	   });
+	  </script>
 		
   		<div class="cardcomment">
   		 <div class="card-header">
@@ -210,6 +225,7 @@
       	   </div>
     	  </div>
     	  
+    	  <!-- 댓글 삭제 alert창 -->
     	  <script>
   			$(document).ready(function() {
    			 let result = '<%= request.getParameter("reresult") %>';
@@ -222,9 +238,9 @@
       		}else if(result === 'redeleteFail'){
       			alert("비밀번호가 일치하지 않습니다.");
       		}  
-   	     }
-  	});
-  	</script>
+   	      }
+  	    });
+  	   </script>
     	
     	<!-- 댓글 수정 모달 창 -->	
 		<div class="modal fade" id="modalmodify" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
@@ -276,8 +292,6 @@
   	});
   	</script>
 
-
-
 	<!-- 게시글 삭제 모달창 -->
 	<div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
      <div class="modal-dialog">
@@ -300,23 +314,7 @@
       </div>
      </div>
    </div>
-   <script type="text/javascript">
-    $(document).ready(function() {
-    let result = '<%= request.getParameter("deresult") %>';
-    
-    checkAlert(result);
-
-    function checkAlert(result) {
-        if (result === 'deleteOK') {
-        	alert("삭제가 완료되었습니다.");
-      	}
-        if (result === 'deleteFail') {
-      		alert("비밀번호가 일치하지 않습니다.")
-      	}
-   	 }
-  	});
-    </script>
-   
+      
    <!-- 게시글 수정 모달창 -->
    <div class="modal fade" id="staticBackdrop2" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
      <div class="modal-dialog">
@@ -338,7 +336,21 @@
          </div>
          </div>
          </div>
-            
- 
+         
+         <script>
+         $(document).ready(function() {
+     	    let result = '<%= request.getParameter("update") %>';
+     	    
+     	    checkAlert(result);
+
+     	    function checkAlert(result) {
+     	        if (result === 'updateFail') {
+     	        	alert("비밀번호가 맞지 않습니다.");
+     	      	}
+     	   	  }
+     	  	});
+        </script>
+      
+        
 </body>
 </html>
