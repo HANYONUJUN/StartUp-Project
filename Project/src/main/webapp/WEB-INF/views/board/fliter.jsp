@@ -16,18 +16,19 @@
      margin-top:-50px;
   }
   img{
-		width:500px;
+		width:400px;
 		height:500px;
-		margin-top:13px;
+		margin-top:25px;
 		margin-left:100px;
 		border-radius:6px;
-		border:1px solid black;
+		box-shadow: 6px 6px 6px 0px;	
 		
 	}
  .canvaspre{
- 	margin-top: 60px;
+ 	margin-top: 80px;
  	display: flex;
     justify-content: center;
+    
  }
   
  .color-picker-wrapper{
@@ -126,7 +127,7 @@
   <br>
   
   <div class="btn">
-	<button type="submit" onclick="showLoading()" style="margin-left:680px; margin-top:-20px;">Upload</button>
+	<button type="submit" onclick="showLoading()" style="margin-left:680px; margin-top:-20px;" class="btn btn-outline-primary">Upload</button>
   </div>
   
     <div id="loading-overlay">
