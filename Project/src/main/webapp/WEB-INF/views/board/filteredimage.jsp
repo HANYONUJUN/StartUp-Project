@@ -75,14 +75,15 @@
     	</div>
     
       <div class="buttons">
-    	<a id="downloadLink" href="" download="filtered_image.png" onclick="downloadFilteredImage()">
-  		  <button class="button" style="margin:auto; display:block; text-decoration:none;">
-    		<span>I am a button</span>
+    	 <a href="#" id="downloadLink" style="text-decoration:none;">
+  		  <button class="btn btn-outline-primary" style="margin:auto; display:block;">
+    		다운로드
   		   </button>
         </a>
        </div>
-     
-  
+       
+      
+      
    <div class="footer_wrap">
     <footer class="py-1 bg-dark mt-auto" style="height:60px;">
     	<nav>
@@ -91,29 +92,37 @@
    </div> 
   
 	<script>
+  // 이미지 다운로드 링크 클릭 이벤트 핸들러
+  document.getElementById("downloadLink").addEventListener("click", function() {
+    // Base64 인코딩된 이미지 데이터
     var filteredImage = "${filteredImage}";
-    // 이미지 다운로드 함수
-    var isDownloading = false;
 
-	function downloadFilteredImage() {
- 	 if (isDownloading) {
-     return; // 이미 다운로드 중인 경우, 함수 실행 중단
-   }
-
-   isDownloading = true;
-
-   var link = document.createElement('a');
-   link.href = 'data:image/png;base64,' + filteredImage;
-   link.download = 'filtered_image.png';
-   link.click();
-
-   // 다운로드 완료 후 플래그 변수 재설정
-   link.addEventListener('load', function() {
-    isDownloading = false;
+    // 이미지 다운로드 함수 호출
+    downloadImage(filteredImage);
   });
-}
-</script>
 
-   
+  // 이미지 다운로드 함수
+  function downloadImage(filteredImage) {
+    // Base64 문자열을 Blob 객체로 변환
+    var byteCharacters = atob(filteredImage);
+    var byteArrays = [];
+    for (var i = 0; i < byteCharacters.length; i++) {
+      byteArrays.push(byteCharacters.charCodeAt(i));
+    }
+    var blob = new Blob([new Uint8Array(byteArrays)], { type: "image/png" });
+
+    // 다운로드 링크 생성
+    var downloadLink = document.createElement("a");
+    downloadLink.href = URL.createObjectURL(blob);
+    downloadLink.download = "filtered_image.png";
+
+    // 다운로드 링크 클릭
+    downloadLink.click();
+
+    // 다운로드 링크 제거
+    URL.revokeObjectURL(downloadLink.href);
+    downloadLink.remove();
+  }
+</script>
 </body>
 </html>
